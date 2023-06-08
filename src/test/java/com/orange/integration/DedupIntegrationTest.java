@@ -90,9 +90,9 @@ public class DedupIntegrationTest {
     public void setUp() {
         // Wait until the partitions are assigned.
         registry.getListenerContainers()
-                .stream()
-                .forEach(container -> ContainerTestUtils
-                    .waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic()));
+        .stream()
+        .forEach(container -> ContainerTestUtils
+                 .waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic()));
 
         cliperDedupReceiver.counter.set(0);
     }
@@ -110,10 +110,10 @@ public class DedupIntegrationTest {
         sendMessage(CLIPER_DEDUP_TEST_TOPIC, cliper2);
         CliperDTO cliper3 = buildCliperDTO(UUID.randomUUID().toString(), "PENDING", "cliper-3");
         sendMessage(CLIPER_DEDUP_TEST_TOPIC, cliper3);
-/*
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).pollDelay(100, TimeUnit.MILLISECONDS)
-        .until(cliperDedupReceiver.counter::get, equalTo(1));
-*/
+        /*
+                Awaitility.await().atMost(10, TimeUnit.SECONDS).pollDelay(100, TimeUnit.MILLISECONDS)
+                .until(cliperDedupReceiver.counter::get, equalTo(1));
+        */
     }
 
 

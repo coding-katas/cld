@@ -57,11 +57,7 @@ public class DedupTopology {
             .selectKey((key, value) -> value.getEntityId())
             .groupByKey(Grouped.with(Serdes.String(), cliperSerdes))
             .windowedBy(TimeWindows.of(Duration.ofMillis(windowTime)).grace(Duration.ofMillis(graceTime)))
-                .reduce((v1, v2) ->{
-        log.info("Reducing: v1={}, v2={}", v1, v2);
-        return v2;
-    }, Materialized.<String, CliperDTO, WindowStore<Bytes, byte[]>>as(STORE_NAME)
-
+            .reduce((v1, v2) -> v2, Materialized.<String, CliperDTO, WindowStore<Bytes, byte[]>>as(STORE_NAME)
                     .withValueSerde(cliperSerdes)
                     .withKeySerde(Serdes.String()));
         KStream<String, CliperDTO> outputStream = reducedTable.toStream().map((windowedId, value) -> new KeyValue<>(windowedId.toString(), value));

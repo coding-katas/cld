@@ -56,25 +56,25 @@ import java.nio.file.Path;
 @Configuration
 public class TestConfiguration {
     private Path stateDirectory;
-/*
-    @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
-    public KafkaStreamsConfiguration kafkaStreamsConfig(@Value("${kafka.bootstrap-servers}") final String bootstrapServers) {
-        Map<String, Object> props = new HashMap<>();
-        props.put(APPLICATION_ID_CONFIG, "cliper-dedup");
-        props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(REQUEST_TIMEOUT_MS_CONFIG, "30000");        
-        props.put(DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        try {
-            this.stateDirectory = Files.createTempDirectory("kafka-streams");
-            props.put(STATE_DIR_CONFIG, this.stateDirectory.toAbsolutePath()
-                .toString());
-        } catch (final IOException e) {
-            throw new UncheckedIOException("Cannot create temporary directory", e);
-        } 
-        props.put(DEFAULT_VALUE_SERDE_CLASS_CONFIG,  new JsonSerde<>(CliperDTO.class).getClass());
-        return new KafkaStreamsConfiguration(props);
-    }
-*/
+    /*
+        @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
+        public KafkaStreamsConfiguration kafkaStreamsConfig(@Value("${kafka.bootstrap-servers}") final String bootstrapServers) {
+            Map<String, Object> props = new HashMap<>();
+            props.put(APPLICATION_ID_CONFIG, "cliper-dedup");
+            props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+            props.put(REQUEST_TIMEOUT_MS_CONFIG, "30000");
+            props.put(DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+            try {
+                this.stateDirectory = Files.createTempDirectory("kafka-streams");
+                props.put(STATE_DIR_CONFIG, this.stateDirectory.toAbsolutePath()
+                    .toString());
+            } catch (final IOException e) {
+                throw new UncheckedIOException("Cannot create temporary directory", e);
+            }
+            props.put(DEFAULT_VALUE_SERDE_CLASS_CONFIG,  new JsonSerde<>(CliperDTO.class).getClass());
+            return new KafkaStreamsConfiguration(props);
+        }
+    */
     @Bean
     public Properties streamsConfiguration(@Value("${kafka.bootstrap-servers}") final String bootstrapServers) {
         final Properties props = new Properties();
@@ -85,7 +85,7 @@ public class TestConfiguration {
         try {
             this.stateDirectory = Files.createTempDirectory("kafka-streams");
             props.put(STATE_DIR_CONFIG, this.stateDirectory.toAbsolutePath()
-                .toString());
+                      .toString());
         } catch (final IOException e) {
             throw new UncheckedIOException("Cannot create temporary directory", e);
         }
@@ -124,7 +124,7 @@ public class TestConfiguration {
         final Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "cliper-dedup");
-	config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return new DefaultKafkaConsumerFactory<>(config);
