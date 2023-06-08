@@ -1,0 +1,14 @@
+kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+
+spring: 
+    main: 
+        web-application-type: none
+
+
+dedup:
+    id: stream
+    dedupInboundTopic: CLIPER_TOPIC
+    dedupOutboundTopic : CLIPER_TOPIC_EVENT
+    windowTime : 1200
+    graceTime : 300
