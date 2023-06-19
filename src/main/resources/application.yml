@@ -1,0 +1,25 @@
+spring:
+    application:
+        name: cliper-dedup
+
+    kafka:
+        bootstrap-servers: instance-1:9093,instance-2:9093
+        commit-time: 1500
+        security: 
+            enabled: true
+            protocol: SSL
+            ssl:
+                trust-store-location: /data/certs/truststore.jks
+                trust-store-password: password
+                key-store-location: /data/certs/keystore.jks
+                key-store-password: password
+                key-password: password
+ 
+
+
+dedup:
+    id: stream
+    dedupInboundTopic: CLIPER_TOPIC
+    dedupOutboundTopic : CLIPER_TOPIC_EVENT
+    windowTime : 1200
+    graceTime : 300

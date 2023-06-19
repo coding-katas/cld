@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.orange.CliperDedupConfiguration;
+import com.orange.dto.CliperDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -16,8 +18,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -31,21 +36,32 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.fasterxml.jackson.core.JsonProcessingException;
-import org.springframework.kafka.core.ConsumerFactory;
-import com.orange.processor.DedupTopology;
 
+import static com.orange.util.TestEventData.buildCliperDTO;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.orange.dto.CliperDTO;
-import static com.orange.util.TestEventData.buildCliperDTO;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = { TestConfiguration.class, DedupTopology.class })
-@EmbeddedKafka(controlledShutdown = true, brokerProperties = { "group.id=cliper-dedup" }, topics = { "CLIPER_TOPIC", "CLIPER_TOPIC_EVENT" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = { CliperDedupConfiguration.class })
+@EmbeddedKafka(controlledShutdown = true, topics = { "CLIPER_TOPIC", "CLIPER_TOPIC_EVENT" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 public class DedupIntegrationTest {
@@ -62,6 +78,9 @@ public class DedupIntegrationTest {
     private KafkaListenerEndpointRegistry registry;
 
     @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
     private KafkaCliperDedupListener cliperDedupReceiver;
 
 
@@ -73,6 +92,37 @@ public class DedupIntegrationTest {
             return new KafkaCliperDedupListener();
         }
 
+
+        @Bean
+        public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(final ConsumerFactory<String, String> consumerFactory) {
+            final ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory();
+            factory.setConsumerFactory(consumerFactory);
+            return factory;
+        }
+
+        @Bean
+        public KafkaTemplate<String, String> kafkaTemplate(final ProducerFactory<String, String> producerFactory) {
+            return new KafkaTemplate<>(producerFactory);
+        }
+
+        @Bean
+        public ConsumerFactory<String, String> consumerFactory(@Value("${spring.kafka.bootstrap-servers}") final String bootstrapServers) {
+            final Map<String, Object> config = new HashMap<>();
+            config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+            config.put(ConsumerConfig.GROUP_ID_CONFIG, "dedup-kafka");
+            config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+            config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+            return new DefaultKafkaConsumerFactory<>(config);
+        }
+
+        @Bean
+        public ProducerFactory<String, String> producerFactory(@Value("${spring.kafka.bootstrap-servers}") final String bootstrapServers) {
+            final Map<String, Object> config = new HashMap<>();
+            config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+            config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+            return new DefaultKafkaProducerFactory<>(config);
+        }
     }
 
     public static class KafkaCliperDedupListener {
@@ -85,52 +135,49 @@ public class DedupIntegrationTest {
         }
     }
 
-
     @BeforeEach
     public void setUp() {
         // Wait until the partitions are assigned.
-        registry.getListenerContainers()
-        .stream()
-        .forEach(container -> ContainerTestUtils
-                 .waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic()));
+        registry.getListenerContainers().stream().forEach(container ->
+                                                          ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic()));
 
         cliperDedupReceiver.counter.set(0);
+
     }
 
     /**
      * Send a number of messages to the inbound messagess topic.
      */
     @Test
-    public void testKafkaStreams() throws Exception {
+    public void testKafkaStreams()  throws Exception {
+        String testId = UUID.randomUUID().toString();
 
-        // Three clipersDTO
-        CliperDTO cliper1 = buildCliperDTO(UUID.randomUUID().toString(), "PENDING", "cliper-1");
+        CliperDTO cliper1 = buildCliperDTO(testId, "PENDING", "cliper-1");
         sendMessage(CLIPER_DEDUP_TEST_TOPIC, cliper1);
-        CliperDTO cliper2 = buildCliperDTO(UUID.randomUUID().toString(), "PENDING", "cliper-2");
+        CliperDTO cliper2 = buildCliperDTO(testId, "PENDING", "cliper-1");
         sendMessage(CLIPER_DEDUP_TEST_TOPIC, cliper2);
-        CliperDTO cliper3 = buildCliperDTO(UUID.randomUUID().toString(), "PENDING", "cliper-3");
+        CliperDTO cliper3 = buildCliperDTO(UUID.randomUUID().toString(), "PENDING", "cliper-2");
         sendMessage(CLIPER_DEDUP_TEST_TOPIC, cliper3);
-        /*
-                Awaitility.await().atMost(10, TimeUnit.SECONDS).pollDelay(100, TimeUnit.MILLISECONDS)
-                .until(cliperDedupReceiver.counter::get, equalTo(1));
-        */
+
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).pollDelay(100, TimeUnit.MILLISECONDS)
+        .until(cliperDedupReceiver.counter::get, equalTo(2));
+        assertThat(cliperDedupReceiver.counter.get(), equalTo(2));
     }
 
-
     /**
-     * Send the given payment event to the given topic.
+     * Send the given event to the given topic.
      */
     private SendResult sendMessage(String topic, CliperDTO event) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         String payload = objectMapper.writeValueAsString(event);
         List<Header> headers = new ArrayList<>();
-        final ProducerRecord<String, CliperDTO> record = new ProducerRecord(topic, null, event.getIdentifier(), event, headers);
+        final ProducerRecord<Long, String> record = new ProducerRecord(topic, null, event.getIdentifier(), payload, headers);
 
         final SendResult result = (SendResult)testKafkaTemplate.send(record).get();
         final RecordMetadata metadata = result.getRecordMetadata();
 
-        log.debug(String.format("Sent record(key=%s value=%s) meta(topic=%s, partition=%d, offset=%d)",
-                                record.key(), record.value(), metadata.topic(), metadata.partition(), metadata.offset()));
+        log.info(String.format("Sent record(key=%s value=%s) meta(topic=%s, partition=%d, offset=%d)",
+                               record.key(), record.value(), metadata.topic(), metadata.partition(), metadata.offset()));
 
         return result;
     }
