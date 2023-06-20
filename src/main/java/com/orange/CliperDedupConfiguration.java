@@ -39,19 +39,19 @@ public class CliperDedupConfiguration {
     @Value(value = "${spring.kafka.security.protocol:SSL}")
     private String securityProtocol;
 
-    @Value(value = "${spring.kafka.ssl.trust-store-location:/data/certs/truststore.jks}")
+    @Value(value = "${spring.kafka.security.ssl.trust-store-location:/data/certs/truststore.jks}")
     private String trustStoreLocation;
 
-    @Value(value = "${spring.kafka.ssl.trust-store-password:password}")
+    @Value(value = "${spring.kafka.security.ssl.trust-store-password:password}")
     private String trustStorePassword;
 
-    @Value(value = "${spring.kafka.ssl.key-store-location:/data/certs/keystore.jks}")
+    @Value(value = "${spring.kafka.security.ssl.key-store-location:/data/certs/keystore.jks}")
     private String keyStoreLocation;
 
-    @Value(value = "${spring.kafka.ssl.key-store-password:password}")
+    @Value(value = "${spring.kafka.security.ssl.key-store-password:password}")
     private String keyStorePassword;
 
-    @Value(value = "${spring.kafka.ssl.key-password:password}")
+    @Value(value = "${spring.kafka.security.ssl.key-password:password}")
     private String keyPassword;
 
 
@@ -82,7 +82,7 @@ public class CliperDedupConfiguration {
             // Create the directory if it doesn't exist
             if (!Files.exists(stateDirectory)) {
                 stateDirectory = Files.createDirectories(stateDirectory);
-            } 
+            }
             props.put(StreamsConfig.STATE_DIR_CONFIG, stateDirectory.toAbsolutePath()
                       .toString());
         } catch (final IOException e) {

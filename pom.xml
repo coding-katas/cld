@@ -12,7 +12,6 @@
         <groupId>org.orange</groupId>
         <artifactId>cliper-dedup</artifactId>
         <version>1.0-SNAPSHOT</version>
-
 	<name>cliper-dedup</name>
 	<description>Cliper Streaming Deduplication</description>
 	<properties>
@@ -20,9 +19,6 @@
 		<spring.boot.version>3.1.0</spring.boot.version>
 		<spring.kafka.version>3.0.7</spring.kafka.version>
 		<kafka.streams.version>3.5.0</kafka.streams.version>
-
-		<!-- Allows control of whether to leave TestContainers up after component test run -->
-		<containers.stayup>false</containers.stayup>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -109,24 +105,6 @@
                         <artifactId>jackson-databind</artifactId>
                         <version>2.14.2</version>
                 </dependency>
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>4.9.0</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.11.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.rest-assured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-streams-test-utils</artifactId>

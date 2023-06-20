@@ -10,9 +10,9 @@ spring:
             enabled: true
             protocol: SSL
             ssl:
-                trust-store-location: /data/certs/truststore.jks
+                trust-store-location: /data/certs/truststore.p12
                 trust-store-password: password
-                key-store-location: /data/certs/keystore.jks
+                key-store-location: /data/certs/keystore.p12
                 key-store-password: password
                 key-password: password
  
