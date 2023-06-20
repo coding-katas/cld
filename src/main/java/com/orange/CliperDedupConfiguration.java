@@ -34,9 +34,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.annotation.PreDestroy;
-import java.util.Comparator;
-import java.io.File;
 
 @Slf4j
 @ComponentScan(basePackages = {"com.orange"})
@@ -120,18 +117,5 @@ public class CliperDedupConfiguration {
         return new KafkaStreamsConfiguration(props);
     }
 
-    @PreDestroy
-    public void cleanup() {
-        if (stateDirectory != null) {
-            try {
-                Files.walk(stateDirectory)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 }

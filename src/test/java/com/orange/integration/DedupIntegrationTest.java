@@ -18,11 +18,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -57,6 +54,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+//import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 
 @Slf4j
@@ -77,13 +75,13 @@ public class DedupIntegrationTest {
     @Autowired
     private KafkaListenerEndpointRegistry registry;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
 
     @Autowired
     private KafkaCliperDedupListener cliperDedupReceiver;
-
-
+    /*
+        @Autowired
+        private TestRestTemplate restTemplate;
+    */
     @Configuration
     static class TestConfig {
 
