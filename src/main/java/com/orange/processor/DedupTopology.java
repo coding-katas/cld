@@ -11,7 +11,6 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Aggregator;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.Initializer;
@@ -21,11 +20,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
-
-
 import org.springframework.kafka.support.serializer.JsonSerde;
-
-import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import java.time.Duration;
 import org.apache.kafka.common.utils.Bytes;
@@ -57,7 +52,7 @@ public class DedupTopology {
 
         KStream<String, CliperDTO> messageStream = streamsBuilder
                                                    .stream(properties.getDedupInboundTopic(), Consumed.with(STRING_SERDE, cliperSerdes))
-                                                   .peek((key, message) -> log.info("Event received with key=" + key + ", message=" + message));
+                                                   .peek((key, message) -> log.debug("Event received with key=" + key + ", message=" + message));
         messageStream
         .selectKey((key, value) -> value.getEntityId())
         .groupByKey(Grouped.with(STRING_SERDE, cliperSerdes))
@@ -67,7 +62,7 @@ public class DedupTopology {
                 .withValueSerde(cliperSerdes)
                 .withKeySerde(STRING_SERDE))
         .toStream().map((windowedId, value) -> new KeyValue<>(windowedId.toString(), value))
-        .peek((key, message) -> log.info("Event After reduce with key=" + key + ", value=" + message))
+        .peek((key, message) -> log.debug("Event After reduce with key=" + key + ", value=" + message))
         .to(properties.getDedupOutboundTopic(), Produced.with(STRING_SERDE, cliperSerdes));
 
     }

@@ -4,6 +4,7 @@ spring:
 
     kafka:
         bootstrap-servers: instance-1:9093,instance-2:9093
+        state-store: ./kafka-state
         commit-time: 1500
         security: 
             enabled: true

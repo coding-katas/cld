@@ -5,29 +5,18 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
 
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import com.orange.dto.CliperDTO;
 import org.springframework.kafka.support.serializer.JsonSerde;
-import org.apache.kafka.common.serialization.Serdes;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -69,7 +58,8 @@ public class CliperDedupConfiguration {
     @Value(value = "${spring.kafka.commit-time:1500}")
     private String commitTime;
 
-    private Path stateDirectory;
+    @Value(value = "${spring.kafka.state-store:./kafka-state}")
+    private String stateStore;
 
 
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
@@ -87,24 +77,20 @@ public class CliperDedupConfiguration {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         try {
-            // Specify the custom directory path
-            Path customDirectory = Paths.get("./kafka-streams");
+            Path stateDirectory = Paths.get(stateStore);
 
             // Create the directory if it doesn't exist
-            if (!Files.exists(customDirectory)) {
-                this.stateDirectory = Files.createDirectories(customDirectory);
-            } else {
-                this.stateDirectory = customDirectory;
-            }
-            //   this.stateDirectory = Files.createTempDirectory("kafka-streams");
-            props.put(StreamsConfig.STATE_DIR_CONFIG, this.stateDirectory.toAbsolutePath()
+            if (!Files.exists(stateDirectory)) {
+                stateDirectory = Files.createDirectories(stateDirectory);
+            } 
+            props.put(StreamsConfig.STATE_DIR_CONFIG, stateDirectory.toAbsolutePath()
                       .toString());
         } catch (final IOException e) {
             throw new UncheckedIOException("Cannot create temporary directory", e);
         }
 
 
-        if (securityEnabled == true) {
+        if (securityEnabled) {
             log.info("kafkaStreamsConfig - SSL enabled");
             props.put("security.protocol", securityProtocol);
             props.put("ssl.truststore.location", trustStoreLocation);

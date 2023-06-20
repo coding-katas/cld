@@ -53,8 +53,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-
-//import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 
 @Slf4j
@@ -75,13 +73,9 @@ public class DedupIntegrationTest {
     @Autowired
     private KafkaListenerEndpointRegistry registry;
 
-
     @Autowired
     private KafkaCliperDedupListener cliperDedupReceiver;
-    /*
-        @Autowired
-        private TestRestTemplate restTemplate;
-    */
+
     @Configuration
     static class TestConfig {
 
@@ -89,7 +83,6 @@ public class DedupIntegrationTest {
         public KafkaCliperDedupListener cliperDedupReceiver() {
             return new KafkaCliperDedupListener();
         }
-
 
         @Bean
         public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(final ConsumerFactory<String, String> consumerFactory) {

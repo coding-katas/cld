@@ -1,8 +1,7 @@
 spring: 
-#    main: 
-#        web-application-type: none
     kafka:
         bootstrap-servers: ${spring.embedded.kafka.brokers}
+        state-store: ./kafka-state
         commit-time: 1500
         security:
             enabled: false
