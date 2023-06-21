@@ -6,7 +6,7 @@ spring:
         bootstrap-servers: instance-1:9093,instance-2:9093
         state-store: ./kafka-state
         commit-time: 1500
-        security: 
+        security:
             enabled: true
             protocol: SSL
             ssl:
@@ -15,8 +15,6 @@ spring:
                 key-store-location: /data/certs/keystore.p12
                 key-store-password: password
                 key-password: password
- 
-
 
 dedup:
     id: stream

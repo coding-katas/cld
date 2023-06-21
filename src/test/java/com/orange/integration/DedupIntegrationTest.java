@@ -129,11 +129,12 @@ public class DedupIntegrationTest {
     @BeforeEach
     public void setUp() {
         // Wait until the partitions are assigned.
-        registry.getListenerContainers().stream().forEach(container ->
-                                                          ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic()));
+        registry.getListenerContainers()
+        .stream()
+        .forEach(container -> ContainerTestUtils
+                 .waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic()));
 
         cliperDedupReceiver.counter.set(0);
-
     }
 
     /**
@@ -162,7 +163,7 @@ public class DedupIntegrationTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String payload = objectMapper.writeValueAsString(event);
         List<Header> headers = new ArrayList<>();
-        final ProducerRecord<Long, String> record = new ProducerRecord(topic, null, event.getIdentifier(), payload, headers);
+        final ProducerRecord<String, CliperDTO> record = new ProducerRecord(topic, null, event.getIdentifier(), payload, headers);
 
         final SendResult result = (SendResult)testKafkaTemplate.send(record).get();
         final RecordMetadata metadata = result.getRecordMetadata();
