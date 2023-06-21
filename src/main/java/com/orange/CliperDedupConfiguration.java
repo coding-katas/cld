@@ -77,7 +77,7 @@ public class CliperDedupConfiguration {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         try {
-            Path stateDirectory = Paths.get(stateStore);
+            Path stateDirectory = Path.of(stateStore);
 
             // Create the directory if it doesn't exist
             if (!Files.exists(stateDirectory)) {

@@ -19,6 +19,6 @@ spring:
 dedup:
     id: stream
     dedupInboundTopic: CLIPER_TOPIC
-    dedupOutboundTopic : CLIPER_TOPIC_EVENT
-    windowTime : 1200
-    graceTime : 300
+    dedupOutboundTopic: CLIPER_TOPIC_EVENT
+    windowTime: 1200
+    graceTime: 300
