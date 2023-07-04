@@ -1,15 +1,15 @@
-spring: 
-    kafka:
-        bootstrap-servers: ${spring.embedded.kafka.brokers}
-        state-store: ./kafka-state
-        commit-time: 1500
-        security:
-            enabled: false
+spring:
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    state-store: ./kafka-state
+    commit-time: 1500
+    security:
+      enabled: false
 
 
 dedup:
-    id: stream
-    dedupInboundTopic: CLIPER_TOPIC
-    dedupOutboundTopic : CLIPER_TOPIC_EVENT
-    windowTime : 500
-    graceTime : 50
+  id: stream
+  dedupInboundTopic: CLIPER_TOPIC
+  dedupOutboundTopic: CLIPER_TOPIC_EVENT
+  windowTime: 500
+  graceTime: 50

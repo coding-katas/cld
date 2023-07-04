@@ -1,24 +1,37 @@
-spring:
-    application:
-        name: cliper-dedup
+---
+management:
+  security:
+    enabled: false
+    endpoints.web.exposure.include: info,health,prometheus
+  endpoint:
+    health.probes.enabled: true
+    prometheus.enabled: true
+    info.enabled: true
 
-    kafka:
-        bootstrap-servers: instance-1:9093,instance-2:9093
-        state-store: ./kafka-state
-        commit-time: 1500
-        security:
-            enabled: true
-            protocol: SSL
-            ssl:
-                trust-store-location: /data/certs/truststore.p12
-                trust-store-password: password
-                key-store-location: /data/certs/keystore.p12
-                key-store-password: password
-                key-password: password
+spring:
+  main:
+    banner-mode: false
+
+  application:
+    name: cliper-dedup
+
+  kafka:
+    bootstrap-servers: meclpdb00b00001.nor.fr.intraorange:9093
+    state-store: ./kafka-state
+    commit-time: 1500
+    security:
+      enabled: true
+      protocol: SSL
+      ssl:
+        trust-store-location: /data/certs/truststore.p12
+        trust-store-password: password
+        key-store-location: /data/certs/keystore.p12
+        key-store-password: password
+        key-password: password
 
 dedup:
-    id: stream
-    dedupInboundTopic: CLIPER_TOPIC
-    dedupOutboundTopic: CLIPER_TOPIC_EVENT
-    windowTime: 1200
-    graceTime: 300
+  id: stream
+  dedupInboundTopic: CLIPER_TOPIC
+  dedupOutboundTopic: CLIPER_TOPIC_EVENT
+  windowTime: 1200
+  graceTime: 300
